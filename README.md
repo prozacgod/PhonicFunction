@@ -4,6 +4,8 @@ A simple idea, Making noise with javascript functions
 You can currently run this version with any web server, the web app saves to
 your localStorage.  
 
+Play with it here!! https://prozacgod.github.io/PhonicFunction/
+
 Features
  * Stores current session in localStorage
  * Renders first 4 seconds of waveform
