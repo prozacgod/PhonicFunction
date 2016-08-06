@@ -1,3 +1,6 @@
+// this is more or less a live example of how to use the program
+// atm it is changing often...
+
 var globalT = t;
 var PI = Math.PI;
 var TAU = PI * 2;
@@ -104,7 +107,8 @@ function Volume(v, fn) {
     Envelope(1, Hertz(349.23)),
     Envelope(1, Hertz(392.00)),
     function() {
-        return 0;
+        return 0
+        ;
     }
 ], t);
 */
