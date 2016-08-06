@@ -200,7 +200,9 @@ function init() {
       userFunction = null;
     }
   });
-  editor.setValue(Lockr.get('current'));
+  if (Lockr.get('current')) {
+    editor.setValue(Lockr.get('current'));
+  }
   editor.on('change', function() {
     Lockr.set("current", editor.getValue());
   });
