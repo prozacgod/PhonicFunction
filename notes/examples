@@ -1,0 +1,57 @@
+var PI = Math.PI;
+var TAU = PI * 2;
+
+function oneHz(t) {
+    return Math.sin(t * Math.PI * TAU);
+}
+
+function Hertz(frequency) {
+  return function() {
+    return oneHz(t * frequency);
+  }
+}
+
+function bpmTime(bpm, t) {
+    return t*(bpm/60);
+}
+
+function clip(x) {
+    if (x > 1.0) {
+        return 1.0;
+    }
+    if (x < -1.0) {
+        return -1.0;
+    }
+
+    return x;
+}
+
+function envelope(t, a, fn) {
+    var x = clip(Math.sin(t * PI) * a);
+    return x * fn(t);
+}
+
+function beatOf(t, offset, fn) {
+    if ((t > offset) && (t < offset + 1.0)) {
+        fn(t % 1.0);
+    }
+}
+
+function measure(bpm, fns, t) {
+    var measureTime = bpmTime(bpm, t) % fns.length;
+    var beatTime = measureTime % 1.0;
+    for (var i = 0; fns.length; i++) {
+        if ((measureTime > i) && (measureTime < i+1)) {
+            return fns[i](beatTime);
+        }
+    }
+}
+
+return measure(160, [
+    Hertz(440.00),
+    Hertz(349.23),
+    Hertz(392.00),
+    function() {
+        return 0;
+    }
+], t);
