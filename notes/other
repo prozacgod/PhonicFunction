@@ -1,36 +1,29 @@
-// this is more or less a live example of how to use the program
-// atm it is changing often...
-/*
-var n = 0;
-function siren1(t) {
-  var x = Math.sin(t * 262 + Math.sin(n));
-  n += Math.sin(t);
-  return x;
-}
-
-function oneHz(t) {
-    return Math.sin(t * Math.PI * 2);
-}
-
-function Hertz(frequency) {
-  return function(t) {
-    return oneHz(t * frequency);
-  }
-}
-
-return Hertz(440)(t);
-*/
 var globalT = t;
 var PI = Math.PI;
 var TAU = PI * 2;
 
-function oneHz(t) {
+function SINE(t) {
     return Math.sin(t * Math.PI * TAU);
 }
 
+function SAW(t) {
+    return ((t*2.0) % 2.0)-1.0;
+}
+
+function SQUARE(t) {
+    var x = SINE(t);
+    if (x > 0) {
+        return 1;
+    } else {
+        return -1;
+    }
+}
+
+return SQUARE(t);
+
 function Hertz(frequency) {
   return function() {
-    return oneHz(t * frequency);
+    return SINE(t * frequency);
   }
 }
 
@@ -82,15 +75,15 @@ function ADSR(a, d, s, r, l, fn) {
     return function(t) {
         var tt = (t-a); // time after attack, now relative to zero
         var volume = 0;
-        if (t > l) { // bail after end of note
+        if (t > l+r) { // bail after end of note
             volume = 0;
         } else if (t < a) { // during attack increase linearly
             volume = (t/a);
         } else if (tt < d)  { // during decay decrease linearly to sustain lavel
             var vv = (1.0 - (tt / d)) * (1.0 - s);
             volume = s + vv;
-        } else if (t > l - r) {
-            var ttt = t-(l-r);
+        } else if (t > l) {
+            var ttt = t-l;
             volume = (1.0-(ttt / r)) * s;
         } else {
             volume = s;
@@ -99,7 +92,7 @@ function ADSR(a, d, s, r, l, fn) {
     }
 }
 
-function Mix(afn, bfn) {
+function iMix(afn, bfn) {
     return function(t) {
         var a = afn(t);
         var b = bfn(t);
@@ -111,6 +104,17 @@ function Mix(afn, bfn) {
         } else {
             return a+b;
         }
+    }
+}
+
+function Mix() {
+    var channels = arguments;
+    return function(t) {
+        var v = 0
+        for (var i = 0; i < channels.length; i++) {
+            v += channels[i](t);
+        }
+        return v;
     }
 }
 
@@ -135,12 +139,50 @@ function Volume(v, fn) {
 //return ADSR(0.5, 0.5, 0.5, .75, 1, function(t) {return 1.0;})(t);
 //return ADSR(0.1, 0.1, 0.5, .1, 1, Hertz(440.00))(t);
 
-return Volume(1,
-    Mix(
-        Mix(
-            Hertz(220.0),
-            Hertz(880.0)
-        ),
+function ATest() {
+    return Volume(1,
+        iMix(
+            iMix(
+                Hertz(440.0),
+                Hertz(880.0)
+            ),
+            Hertz(220.0)
+        )
+    );
+}
+
+function BTest() {
+    return Volume(1,
+        iMix(
+            iMix(
+                Hertz(220.0),
+                Hertz(880.0)
+            ),
+            Hertz(440.0)
+        )
+    );
+}
+
+function CTest() {
+    return Volume(.5, Mix(
+        Hertz(220.0),
+        Hertz(880.0),
         Hertz(440.0)
-    )
-)(t);
+    ));
+}
+
+
+var atest = ATest();
+var btest = BTest();
+var ctest = CTest();
+
+function test(t) {
+    var ft = t % 4.0;
+    if (ft < 1.0) {
+        return atest(t);
+    } else if (ft < 2.0) {
+        return btest(t);
+    } else if (ft < 3.0) {
+        return ctest(t);
+    }
+}
