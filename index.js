@@ -100,14 +100,6 @@ function init() {
     Lockr.set("current", editor.getValue());
   });
 
-  const started = false;
-  const start = function() {
-    if (!started) 
-      sound.start();
-  }
-  
-  document.body.addEventListener('mousedown', start);
-  document.body.addEventListener('keydown', start);
   initDisplays();
   redrawHistory();
 }

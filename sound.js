@@ -2,11 +2,11 @@
 number of samples this gizmo can handle before it will get wierd... so given a 44100 sample rate
 you'll only be able to play for 2,363,945 days consecutively, you were warned!!.
 */
-
 var sound = {
   userFunction: null,
   sample_index: 0,
   paused: true,
+  started: false,
 
   generate:function(t) {
     if (sound.userFunction) {
@@ -17,6 +17,10 @@ var sound = {
   },
 
   play: function(userFunction) {
+    if (!sound.started) {
+      sound.start();
+    }
+
     if (userFunction) {
       sound.setUserFunction(userFunction);
     }
@@ -38,24 +42,24 @@ var sound = {
   },
 
   start: function() {
-    (function(AudioContext) {
-      var audioContext = new AudioContext();
-      var bufferSize = 4096;
-      var noiseMaker = audioContext.createScriptProcessor(bufferSize, 1, 1);
-      noiseMaker.onaudioprocess = function(e) {
-        var output = e.outputBuffer.getChannelData(0);
-        if (!sound.paused) {
-          for (var i = 0; i < bufferSize; i++) {
-              output[i] = sound.generate(sound.sample_index / audioContext.sampleRate);
-              sound.sample_index += 1;
-          }
-        } else {
-          for (var i = 0; i < bufferSize; i++) {
-            output[i] = 0;
-          }
+    sound.started = true;
+    console.log("Starting audio");
+    const audioContext = new AudioContext();
+    const bufferSize = 4096;
+    const noiseMaker = audioContext.createScriptProcessor(bufferSize, 1, 1);
+    noiseMaker.connect(audioContext.destination);
+    noiseMaker.onaudioprocess = function(e) {
+      var output = e.outputBuffer.getChannelData(0);
+      if (!sound.paused) {
+        for (var i = 0; i < bufferSize; i++) {
+            output[i] = sound.generate(sound.sample_index / audioContext.sampleRate);
+            sound.sample_index += 1;
+        }
+      } else {
+        for (var i = 0; i < bufferSize; i++) {
+          output[i] = 0;
         }
       }
-      noiseMaker.connect(audioContext.destination);
-    })(window.AudioContext || window.webkitAudioContext);
+    };      
   }
 };
